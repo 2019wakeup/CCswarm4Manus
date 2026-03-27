@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCswarm4Manus - 多智能体 Claude Code 编排平台</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --border-color: #30363d;
+            --accent-cyan: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-purple: #bc8cff;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, #0a0d12 100%);
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(88, 166, 255, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 60%, rgba(188, 140, 255, 0.08), transparent),
+                radial-gradient(ellipse 50% 30% at 20% 80%, rgba(63, 185, 80, 0.08), transparent);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(88, 166, 255, 0.1);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--accent-cyan);
+            margin-bottom: 32px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .hero h1 {
+            font-size: clamp(48px, 10vw, 80px);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-cyan) 50%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(18px, 3vw, 24px);
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
+        }
+
+        .hero-desc {
+            max-width: 700px;
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            animation: fadeInUp 0.8s ease-out 0.4s backwards;
+        }
+
+        .hero-cta {
+            margin-top: 40px;
+            display: flex;
+            gap: 16px;
+            animation: fadeInUp 0.8s ease-out 0.6s backwards;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: var(--bg-primary);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(88, 166, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(88, 166, 255, 0.1);
+        }
+
+        /* Section Styles */
+        section {
+            padding: 100px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(63, 185, 80, 0.1);
+            border: 1px solid rgba(63, 185, 80, 0.3);
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: clamp(32px, 5vw, 42px);
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-desc {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Architecture Section */
+        .architecture {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .arch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+        }
+
+        .arch-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .arch-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .arch-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .arch-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .arch-card.layer-1::before { background: linear-gradient(90deg, var(--accent-cyan), transparent); }
+        .arch-card.layer-2::before { background: linear-gradient(90deg, var(--accent-green), transparent); }
+        .arch-card.layer-3::before { background: linear-gradient(90deg, var(--accent-purple), transparent); }
+        .arch-card.layer-4::before { background: linear-gradient(90deg, #f78166, transparent); }
+
+        .arch-layer {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .layer-1 .arch-layer { background: rgba(88, 166, 255, 0.15); }
+        .layer-2 .arch-layer { background: rgba(63, 185, 80, 0.15); }
+        .layer-3 .arch-layer { background: rgba(188, 140, 255, 0.15); }
+        .layer-4 .arch-layer { background: rgba(247, 129, 102, 0.15); }
+
+        .arch-layer svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .layer-1 .arch-layer svg { color: var(--accent-cyan); }
+        .layer-2 .arch-layer svg { color: var(--accent-green); }
+        .layer-3 .arch-layer svg { color: var(--accent-purple); }
+        .layer-4 .arch-layer svg { color: #f78166; }
+
+        .arch-card h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .arch-card .layer-name {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .arch-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Features Section */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 28px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-purple);
+            box-shadow: 0 8px 30px rgba(188, 140, 255, 0.15);
+        }
+
+        .feature-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, rgba(188, 140, 255, 0.2), rgba(88, 166, 255, 0.1));
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon svg {
+            width: 26px;
+            height: 26px;
+            color: var(--accent-purple);
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Components Section */
+        .components {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .components-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .components-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .file-tree {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+            font-size: 13px;
+        }
+
+        .tree-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        .tree-item {
+            padding: 6px 0;
+            color: var(--text-secondary);
+        }
+
+        .tree-item.level-1 { padding-left: 0; }
+        .tree-item.level-2 { padding-left: 20px; }
+        .tree-item.level-3 { padding-left: 40px; }
+
+        .tree-item .folder { color: var(--accent-cyan); }
+        .tree-item .file { color: var(--text-primary); }
+        .tree-item .file.js { color: #f7df1e; }
+        .tree-item .file.sh { color: var(--accent-green); }
+        .tree-item .file.json { color: var(--accent-purple); }
+
+        .components-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .component-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        .component-item.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .component-item:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(88, 166, 255, 0.03);
+        }
+
+        .component-item h4 {
+            font-size: 15px;
+            font-family: "SF Mono", Monaco, monospace;
+            color: var(--accent-cyan);
+            margin-bottom: 8px;
+        }
+
+        .component-item p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Workflow Section */
+        .workflow-container {
+            overflow-x: auto;
+            padding: 20px 0;
+        }
+
+        .workflow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            min-width: max-content;
+            padding: 20px;
+        }
+
+        .workflow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            min-width: 160px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        .workflow-step.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .workflow-step:hover {
+            border-color: var(--accent-green);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(63, 185, 80, 0.15);
+        }
+
+        .step-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            background: rgba(63, 185, 80, 0.1);
+            border-radius: 50%;
+            margin-bottom: 16px;
+        }
+
+        .step-icon svg {
+            width: 28px;
+            height: 28px;
+            color: var(--accent-green);
+        }
+
+        .workflow-step h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .workflow-step p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .workflow-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--border-color);
+            font-size: 24px;
+            padding: 0 12px;
+        }
+
+        .workflow-arrow svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer-logo svg {
+            width: 40px;
+            height: 40px;
+            color: var(--accent-cyan);
+        }
+
+        .footer-logo span {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-link:hover {
+            color: var(--accent-cyan);
+        }
+
+        .footer-link svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .footer-copy {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scroll animations */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            section {
+                padding: 60px 0;
+            }
+
+            .hero {
+                min-height: 80vh;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+            }
+
+            .workflow {
+                flex-direction: column;
+            }
+
+            .workflow-arrow {
+                transform: rotate(90deg);
+                padding: 12px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                </svg>
+                开源项目
+            </div>
+            <h1>CCswarm4Manus</h1>
+            <p class="hero-subtitle">基于 Thin Agent / Fat Platform 架构的多智能体 Claude Code 编排平台</p>
+            <p class="hero-desc">
+                CCswarm4Manus 是一个高效的多智能体协作编排系统，通过 Master Planner 层统一调度远程 Claude Code 节点，
+                实现任务的并行下发、状态探针监控与质量门控。系统采用 SSH + tmux 守护进程实现零阻塞异步调度，
+                让复杂任务被拆解后并行执行，大幅提升 Claude Code 的任务处理能力。
+            </p>
+            <div class="hero-cta">
+                <a href="https://github.com/2019wakeup/CCswarm4Manus" class="btn btn-primary" target="_blank">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    GitHub 仓库
+                </a>
+                <a href="#architecture" class="btn btn-secondary">
+                    了解更多
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section class="architecture" id="architecture">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">架构设计</span>
+                <h2 class="section-title">四层核心架构</h2>
+                <p class="section-desc">分层设计，各司其职，构建可扩展的多智能体编排系统</p>
+            </div>
+            <div class="arch-grid">
+                <div class="arch-card layer-1 animate-on-scroll" style="transition-delay: 0.1s;">
+                    <div class="arch-layer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polygon points="10 8 16 12 10 16 10 8"/>
+                        </svg>
+                    </div>
+                    <h3>Layer 1</h3>
+                    <p class="layer-name">Master Planner Layer (Manus)</p>
+                    <p>负责意图解析、任务拆解、宏观状态管理全局任务调度与监控 polling</p>
+                </div>
+                <div class="arch-card layer-2 animate-on-scroll" style="transition-delay: 0.2s;">
+                    <div class="arch-layer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                    </div>
+                    <h3>Layer 2</h3>
+                    <p class="layer-name">Remote Communication Layer</p>
+                    <p>SSH + tmux 守护进程实现零阻塞异步下发，ControlMaster 复用连接</p>
+                </div>
+                <div class="arch-card layer-3 animate-on-scroll" style="transition-delay: 0.3s;">
+                    <div class="arch-layer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"/>
+                            <rect x="9" y="9" width="6" height="6"/>
+                            <line x1="9" y1="1" x2="9" y2="4"/>
+                            <line x1="15" y1="1" x2="15" y2="4"/>
+                            <line x1="9" y1="20" x2="9" y2="23"/>
+                            <line x1="15" y1="20" x2="15" y2="23"/>
+                            <line x1="20" y1="9" x2="23" y2="9"/>
+                            <line x1="20" y1="14" x2="23" y2="14"/>
+                            <line x1="1" y1="9" x2="4" y2="9"/>
+                            <line x1="1" y1="14" x2="4" y2="14"/>
+                        </svg>
+                    </div>
+                    <h3>Layer 3</h3>
+                    <p class="layer-name">Node Execution Layer</p>
+                    <p>Claude Code CLI 无头模式运行，角色隔离的 Thin Agent，工具权限精确管控</p>
+                </div>
+                <div class="arch-card layer-4 animate-on-scroll" style="transition-delay: 0.4s;">
+                    <div class="arch-layer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <polyline points="9 12 12 15 16 10"/>
+                        </svg>
+                    </div>
+                    <h3>Layer 4</h3>
+                    <p class="layer-name">Quality Gate Layer</p>
+                    <p>Hooks 生命周期钩子拦截保存/退出操作，强制运行 Lint + 单元测试</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">核心特性</span>
+                <h2 class="section-title">为什么选择 CCswarm4Manus</h2>
+                <p class="section-desc">精心设计的特性，确保多智能体协作高效可靠</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card animate-on-scroll" style="transition-delay: 0.1s;">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                        </svg>
+                    </div>
+                    <h3>零阻塞异步调度</h3>
+                    <p>tmux 守护进程实现任务下发后立即释放上下文，无需等待远程执行完成即可处理下一个任务</p>
+                </div>
+                <div class="feature-card animate-on-scroll" style="transition-delay: 0.2s;">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            <line x1="11" y1="8" x2="11" y2="14"/>
+                            <line x1="8" y1="11" x2="14" y2="11"/>
+                        </svg>
+                    </div>
+                    <h3>轻量级状态探针</h3>
+                    <p>响应 JSON 小于 100 bytes，内置死循环检测机制，快速感知节点状态变化</p>
+                </div>
+                <div class="feature-card animate-on-scroll" style="transition-delay: 0.3s;">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </div>
+                    <h3>并发安全状态管理</h3>
+                    <p>flock 文件锁机制保护 claude-progress.json，支持多进程并发读写不冲突</p>
+                </div>
+                <div class="feature-card animate-on-scroll" style="transition-delay: 0.4s;">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                            <line x1="12" y1="2" x2="12" y2="12"/>
+                        </svg>
+                    </div>
+                    <h3>优雅中断机制</h3>
+                    <p>SIGINT 优先发送，15秒 Checkpoint 保存窗口，自动保存进度后退出</p>
+                </div>
+                <div class="feature-card animate-on-scroll" style="transition-delay: 0.5s;">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="8.5" cy="7" r="4"/>
+                            <line x1="20" y1="8" x2="20" y2="14"/>
+                            <line x1="23" y1="11" x2="17" y2="11"/>
+                        </svg>
+                    </div>
+                    <h3>基于角色的权限隔离</h3>
+                    <p>Planner/Coder/Reviewer 三种角色，工具互斥矩阵精确管控，防止越权操作</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Components Section -->
+    <section class="components" id="components">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">核心组件</span>
+                <h2 class="section-title">项目结构一览</h2>
+                <p class="section-desc">每个组件各司其职，协同构建完整的多智能体编排系统</p>
+            </div>
+            <div class="components-layout">
+                <div class="file-tree animate-on-scroll">
+                    <div class="tree-header">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        CCswarm4Manus
+                    </div>
+                    <div class="tree-item level-1"><span class="folder">src/</span></div>
+                    <div class="tree-item level-2"><span class="file js">state_manager.js</span></div>
+                    <div class="tree-item level-1"><span class="folder">scripts/</span></div>
+                    <div class="tree-item level-2"><span class="file sh">spawn_agent.sh</span></div>
+                    <div class="tree-item level-2"><span class="file sh">probe_status.sh</span></div>
+                    <div class="tree-item level-2"><span class="file sh">interrupt_agent.sh</span></div>
+                    <div class="tree-item level-2"><span class="file sh">set_dirty_bit.sh</span></div>
+                    <div class="tree-item level-2"><span class="file sh">verify_before_exit.sh</span></div>
+                    <div class="tree-item level-1"><span class="folder">.claude/</span></div>
+                    <div class="tree-item level-2"><span class="file json">settings.json</span></div>
+                    <div class="tree-item level-1"><span class="folder">test/</span></div>
+                    <div class="tree-item level-2"><span class="file sh">*.test.sh</span></div>
+                    <div class="tree-item level-1"><span class="folder">docs/</span></div>
+                    <div class="tree-item level-2"><span class="file">index.html</span></div>
+                </div>
+                <div class="components-list">
+                    <div class="component-item animate-on-scroll" style="transition-delay: 0.1s;">
+                        <h4>src/state_manager.js</h4>
+                        <p>并发安全的 JSON 状态读写核心模块，提供 initializeState()、updateTaskStatus()、readState() 接口，使用 flock 文件锁防止并发写入冲突</p>
+                    </div>
+                    <div class="component-item animate-on-scroll" style="transition-delay: 0.2s;">
+                        <h4>scripts/spawn_agent.sh</h4>
+                        <p>异步任务下发脚本，通过 tmux 守护进程启动远程 Claude Code CLI，支持锁文件机制防止重复下发，任务ID追踪</p>
+                    </div>
+                    <div class="component-item animate-on-scroll" style="transition-delay: 0.3s;">
+                        <h4>scripts/probe_status.sh</h4>
+                        <p>轻量状态探针脚本，返回极简 JSON 状态信息（小于100 bytes），内置死循环检测，超时自动标记</p>
+                    </div>
+                    <div class="component-item animate-on-scroll" style="transition-delay: 0.4s;">
+                        <h4>scripts/interrupt_agent.sh</h4>
+                        <p>优雅中断脚本：优先发送 SIGINT 信号，保留15秒 Checkpoint 保存窗口，自动更新状态为 interrupted</p>
+                    </div>
+                    <div class="component-item animate-on-scroll" style="transition-delay: 0.5s;">
+                        <h4>scripts/set_dirty_bit.sh</h4>
+                        <p>PostToolUse Hook 脚本，当检测到 Edit 或 Write 工具调用时设置 dirty bit，标记代码已被修改</p>
+                    </div>
+                    <div class="component-item animate-on-scroll" style="transition-delay: 0.6s;">
+                        <h4>scripts/verify_before_exit.sh</h4>
+                        <p>Stop Hook 退出前质量门控脚本，强制运行 lint/单元测试，非零退出码阻止 Agent 退出并汇报失败</p>
+                    </div>
+                    <div class="component-item animate-on-scroll" style="transition-delay: 0.7s;">
+                        <h4>.claude/settings.json</h4>
+                        <p>Claude Code Hooks 配置中心，定义 PostToolUse、Stop 等生命周期钩子绑定，角色权限矩阵</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workflow Section -->
+    <section class="workflow-section" id="workflow">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">工作流程</span>
+                <h2 class="section-title">任务执行流程</h2>
+                <p class="section-desc">从任务拆解到完成汇报的完整生命周期</p>
+            </div>
+            <div class="workflow-container">
+                <div class="workflow">
+                    <div class="workflow-step animate-on-scroll" style="transition-delay: 0.1s;">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="16"/>
+                                <line x1="8" y1="12" x2="16" y2="12"/>
+                            </svg>
+                        </div>
+                        <h4>Manus 拆解任务</h4>
+                        <p>Planner 解析意图</p>
+                    </div>
+                    <div class="workflow-arrow">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </div>
+                    <div class="workflow-step animate-on-scroll" style="transition-delay: 0.2s;">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"/>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                            </svg>
+                        </div>
+                        <h4>cc_dispatch 下发</h4>
+                        <p>异步任务分发</p>
+                    </div>
+                    <div class="workflow-arrow">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </div>
+                    <div class="workflow-step animate-on-scroll" style="transition-delay: 0.3s;">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                <line x1="8" y1="21" x2="16" y2="21"/>
+                                <line x1="12" y1="17" x2="12" y2="21"/>
+                            </svg>
+                        </div>
+                        <h4>tmux 守护启动</h4>
+                        <p>Claude Code CLI</p>
+                    </div>
+                    <div class="workflow-arrow">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </div>
+                    <div class="workflow-step animate-on-scroll" style="transition-delay: 0.4s;">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="16 18 22 12 16 6"/>
+                                <polyline points="8 6 2 12 8 18"/>
+                            </svg>
+                        </div>
+                        <h4>Claude Code 执行</h4>
+                        <p>Thin Agent 干活</p>
+                    </div>
+                    <div class="workflow-arrow">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </div>
+                    <div class="workflow-step animate-on-scroll" style="transition-delay: 0.5s;">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                <polyline points="9 12 12 15 16 10"/>
+                            </svg>
+                        </div>
+                        <h4>Hooks 质量门控</h4>
+                        <p>Lint + 测试</p>
+                    </div>
+                    <div class="workflow-arrow">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </div>
+                    <div class="workflow-step animate-on-scroll" style="transition-delay: 0.6s;">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                        </div>
+                        <h4>探针轮询状态</h4>
+                        <p>轻量 JSON</p>
+                    </div>
+                    <div class="workflow-arrow">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </div>
+                    <div class="workflow-step animate-on-scroll" style="transition-delay: 0.7s;">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                        </div>
+                        <h4>任务完成汇报</h4>
+                        <p>状态同步归档</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    <span>CCswarm4Manus</span>
+                </div>
+                <div class="footer-links">
+                    <a href="https://github.com/2019wakeup/CCswarm4Manus" class="footer-link" target="_blank">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                        GitHub 仓库
+                    </a>
+                    <a href="https://github.com/2019wakeup/CCswarm4Manus/issues" class="footer-link" target="_blank">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                        反馈问题
+                    </a>
+                </div>
+                <p class="footer-copy">CCswarm4Manus - 多智能体 Claude Code 编排平台</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll animation observer
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

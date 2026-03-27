@@ -1,0 +1,9 @@
+# 运行时状态文件（不纳入版本控制）
+.manus/logs/
+.manus/orchestration.lock
+claude-progress.json
+test_artifacts/
+
+# Node
+node_modules/
+*.log

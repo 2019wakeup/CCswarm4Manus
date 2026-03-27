@@ -1,0 +1,45 @@
+Create a beautiful, single-file native HTML page at docs/index.html that introduces the CCswarm4Manus repository.
+
+The page must be written in Chinese and include the following sections:
+
+1. HERO SECTION: Project title "CCswarm4Manus", subtitle "基于 Thin Agent / Fat Platform 架构的多智能体 Claude Code 编排平台", and a brief description of the project purpose.
+
+2. ARCHITECTURE SECTION: Explain the 4-layer architecture with visual cards:
+   - Layer 1: Master Planner Layer (Manus) - 意图解析、任务拆解、宏观状态管理
+   - Layer 2: Remote Communication Layer - SSH + tmux 守护进程，零阻塞异步下发
+   - Layer 3: Node Execution Layer - Claude Code CLI 无头模式，角色隔离的 Thin Agent
+   - Layer 4: Quality Gate Layer - Hooks 生命周期钩子，强制 Lint + 测试
+
+3. FEATURES SECTION: 5 feature cards:
+   - 零阻塞异步调度: tmux 守护进程，下发后立即释放上下文
+   - 轻量级状态探针: <100 bytes JSON 响应，含死循环检测
+   - 并发安全状态管理: flock 机制保护 claude-progress.json
+   - 优雅中断机制: SIGINT 优先，15秒 Checkpoint 保存窗口
+   - 基于角色的权限隔离: Planner/Coder/Reviewer 工具互斥矩阵
+
+4. COMPONENTS SECTION: Show a file tree and description of each core file:
+   - src/state_manager.js - 并发安全的 JSON 状态读写核心
+   - scripts/spawn_agent.sh - 异步任务下发脚本
+   - scripts/probe_status.sh - 轻量状态探针
+   - scripts/interrupt_agent.sh - 优雅中断与状态同步
+   - scripts/set_dirty_bit.sh - PostToolUse Hook，标记代码修改
+   - scripts/verify_before_exit.sh - Stop Hook，退出前强制质量检查
+   - .claude/settings.json - Claude Code Hooks 配置
+
+5. WORKFLOW SECTION: A visual step-by-step flow showing:
+   Manus 拆解任务 → cc_dispatch 下发 → tmux 守护启动 Claude Code → Claude Code 执行 → Hooks 质量门控 → 探针轮询 → 任务完成汇报
+
+6. FOOTER: GitHub link to https://github.com/2019wakeup/CCswarm4Manus
+
+DESIGN REQUIREMENTS (CRITICAL):
+- Pure HTML/CSS/JS only - absolutely NO external CDN, no frameworks, no imports
+- Dark theme: background #0d1117 (GitHub dark), card background #161b22, borders #30363d
+- Accent colors: cyan #58a6ff, green #3fb950, purple #bc8cff
+- Modern tech aesthetic with subtle gradients and glow effects
+- CSS animations: fade-in on scroll, hover lift effects on cards
+- Responsive grid layout
+- Use inline SVG for icons (no emoji, no external icon fonts)
+- Professional typography using system fonts stack
+- The page should look like a polished open-source project documentation page
+
+Save the complete file to: /root/CCswarm4Manus/docs/index.html
