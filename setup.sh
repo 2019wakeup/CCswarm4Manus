@@ -179,3 +179,24 @@ echo "下一步:"
 echo "  1. 配置 SSH 免密登录到远程服务器"
 echo "  2. 运行测试验证: bash test/state_manager.test.sh"
 echo "  3. 开始使用: 参考 README.md"
+
+# === 优化一：版本检查与 Schema 校验 ===
+echo
+echo '=== 版本兼容性检查 ==='
+CLAUDE_INSTALLED_VERSION=$(claude --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo 'unknown')
+REQUIRED_MAJOR=2; REQUIRED_MINOR=1; REQUIRED_PATCH=71
+if [ "$CLAUDE_INSTALLED_VERSION" != 'unknown' ]; then
+  IFS='.' read -r V_MAJ V_MIN V_PAT <<< "$CLAUDE_INSTALLED_VERSION"
+  if [ "$V_MAJ" -lt "$REQUIRED_MAJOR" ] ||      ([ "$V_MAJ" -eq "$REQUIRED_MAJOR" ] && [ "$V_MIN" -lt "$REQUIRED_MINOR" ]) ||      ([ "$V_MAJ" -eq "$REQUIRED_MAJOR" ] && [ "$V_MIN" -eq "$REQUIRED_MINOR" ] && [ "$V_PAT" -lt "$REQUIRED_PATCH" ]); then
+    log_warn "Claude Code $CLAUDE_INSTALLED_VERSION may be incompatible. Recommended: >= 2.1.71"
+  else
+    log_info "Claude Code $CLAUDE_INSTALLED_VERSION >= 2.1.71 ✅"
+  fi
+fi
+
+echo '=== settings.json Schema 校验 ==='
+if [ -f '.claude/settings.json' ]; then
+  bash scripts/validate_settings.sh .claude/settings.json || log_warn 'settings.json schema check failed — please fix before running agents'
+else
+  log_warn '.claude/settings.json not found, skipping schema check'
+fi
