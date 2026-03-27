@@ -1,0 +1,14 @@
+services:
+  claude-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/workspace
+      - ~/.claude:/home/claude-runner/.claude:ro
+    environment:
+      - ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-https://api.anthropic.com}
+      - ANTHROPIC_AUTH_TOKEN=${ANTHROPIC_AUTH_TOKEN:-}
+    stdin_open: true
+    tty: false
+    restart: "no"

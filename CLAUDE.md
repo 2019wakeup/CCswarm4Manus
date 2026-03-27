@@ -110,3 +110,39 @@ ZIP archive containing SSH remote interaction scripts for node orchestration. Ex
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
 - [Claude Code Hooks](https://code.claude.com/docs/en/hooks)
 - [Shipyard: Multi-agent orchestration for Claude Code](https://shipyard.build/blog/claude-code-multi-agent/)
+
+## 权限安全规范
+
+### 为何不能以 root 运行 Claude Code
+
+Claude Code CLI 会检测其运行用户的 UID。当以 root（UID 0）运行时，`--dangerously-skip-permissions` 标志会被强制禁用，这是出于安全考虑的设计。Root 权限绕过权限检查可能导致：
+
+- 意外的系统级文件修改
+- 无法追踪的操作审计
+- 潜在的容器逃逸风险
+
+### 三种运行方式优先级
+
+| 优先级 | 方式 | 说明 |
+|--------|------|------|
+| **首选** | Docker 容器 | 在容器内以 UID 1000 (claude-runner) 运行，完全隔离，权限受限 |
+| **次选** | 非 root 用户直接运行 | 在主机上以普通用户（UID >= 1000）运行 Claude Code |
+| **不推荐** | root + su 降级 | 降级到 claude-runner 用户运行，但缺少 Docker 的隔离层 |
+
+### 用户 ID 要求
+
+所有执行节点 **必须**以 UID >= 1000 的非 root 用户运行。这确保了：
+- `--dangerously-skip-permissions` 标志可用
+- 文件系统操作具有适当的权限边界
+- 审计日志可以正确追踪操作来源
+
+### Dockerfile 注意事项
+
+```dockerfile
+# 正确：创建非 root 用户
+RUN useradd -m -u 1000 -s /bin/bash claude-runner
+USER claude-runner
+
+# 错误：以 root 运行（会禁用 --dangerously-skip-permissions）
+# USER root
+```
