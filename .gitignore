@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Claude Code local settings (contains personal SSH keys/paths)
+.claude/settings.local.json
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Runtime state files
+manus/
+*.lock
+claude-progress.json
+
+# Logs
+*.log
